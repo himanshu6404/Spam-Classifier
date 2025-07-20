@@ -2,11 +2,20 @@ import streamlit as st
 import pickle
 import string
 import nltk
+import os
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
-nltk.download('punkt')
-nltk.download('stopwords')
+# Safe download check (won't re-download every time)
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 
 ps = PorterStemmer()
 
@@ -35,10 +44,9 @@ def transform_text(text):
 
     return " ".join(y)
 
-# Load vectorizer
+# Load vectorizer and models
 tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
 
-# Load all models
 models = {
     "Logistic Regression": pickle.load(open("logistic_model.pkl", 'rb')),
     "Support Vector Classifier": pickle.load(open("svm_model.pkl", 'rb')),
@@ -46,16 +54,16 @@ models = {
 }
 
 # Streamlit UI
-st.title("Email/SMS Spam Classifier")
+st.title("📩 Email/SMS Spam Classifier")
+st.markdown("A simple NLP-based spam detector using Logistic Regression, SVM, or KNN.")
 
-input_sms = st.text_area("Enter the message")
+input_sms = st.text_area("Enter your message")
 
-# Dropdown to select model
 model_choice = st.selectbox("Choose a model", list(models.keys()))
 
 if st.button('Predict'):
     if input_sms.strip() == "":
-        st.warning("Please enter a message.")
+        st.warning("⚠️ Please enter a message.")
     else:
         # 1. Preprocess
         transformed_sms = transform_text(input_sms)
@@ -69,6 +77,6 @@ if st.button('Predict'):
 
         # 4. Display
         if result == 1:
-            st.header("Spam")
+            st.error("❌ Spam")
         else:
-            st.header("Not Spam")
+            st.success("✅ Not Spam")
