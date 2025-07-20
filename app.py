@@ -40,9 +40,9 @@ tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
 
 # Load all models
 models = {
-    "Logistic Regression": pickle.load(open("lrc_model.pkl", 'rb')),
-    "Support Vector Classifier": pickle.load(open("svc_model.pkl", 'rb')),
-    "K-Nearest Neighbors": pickle.load(open("kn_model.pkl", 'rb'))
+    "Logistic Regression": pickle.load(open("logistic_model.pkl", 'rb')),
+    "Support Vector Classifier": pickle.load(open("svm_model.pkl", 'rb')),
+    "K-Nearest Neighbors": pickle.load(open("knn_model.pkl", 'rb'))
 }
 
 # Streamlit UI
