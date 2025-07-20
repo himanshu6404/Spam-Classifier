@@ -1,55 +1,74 @@
 import streamlit as st
 import pickle
+import string
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
 
-# Set page config
-st.set_page_config(page_title="Spam Classifier", page_icon="📩")
+nltk.download('punkt')
+nltk.download('stopwords')
 
-# Title
-st.title("📩 Spam Message Classifier")
-st.write("Classify SMS messages as **Spam** or **Ham (Not Spam)** using different ML models.")
+ps = PorterStemmer()
 
-# Load vectorizer and models
-@st.cache_resource
-def load_assets():
-    tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
-    lrc_model = pickle.load(open('logistic_model.pkl', 'rb'))
-    svc_model = pickle.load(open('svm_model.pkl', 'rb'))
-    knn_model = pickle.load(open('knn_model.pkl', 'rb'))
-    return tfidf, {
-        "Logistic Regression": lrc_model,
-        "Support Vector Classifier": svc_model,
-        "K-Nearest Neighbors": knn_model
-    }
+# Preprocessing function
+def transform_text(text):
+    text = text.lower()
+    text = nltk.word_tokenize(text)
 
-# Load all assets
-tfidf, models = load_assets()
+    y = []
+    for i in text:
+        if i.isalnum():
+            y.append(i)
 
-# Input text box
-user_input = st.text_area("✍️ Enter your message below:", height=150)
+    text = y[:]
+    y.clear()
 
-# Model selector
-selected_model_name = st.selectbox("🔍 Choose a model to use:", list(models.keys()))
-selected_model = models[selected_model_name]
+    for i in text:
+        if i not in stopwords.words('english') and i not in string.punctuation:
+            y.append(i)
 
-# Predict button
-if st.button("🚀 Classify Message"):
-    if not user_input.strip():
-        st.warning("Please enter a message before classifying.")
+    text = y[:]
+    y.clear()
+
+    for i in text:
+        y.append(ps.stem(i))
+
+    return " ".join(y)
+
+# Load vectorizer
+tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
+
+# Load all models
+models = {
+    "Logistic Regression": pickle.load(open("lrc_model.pkl", 'rb')),
+    "Support Vector Classifier": pickle.load(open("svc_model.pkl", 'rb')),
+    "K-Nearest Neighbors": pickle.load(open("kn_model.pkl", 'rb'))
+}
+
+# Streamlit UI
+st.title("Email/SMS Spam Classifier")
+
+input_sms = st.text_area("Enter the message")
+
+# Dropdown to select model
+model_choice = st.selectbox("Choose a model", list(models.keys()))
+
+if st.button('Predict'):
+    if input_sms.strip() == "":
+        st.warning("Please enter a message.")
     else:
-        transformed_input = tfidf.transform([user_input])
+        # 1. Preprocess
+        transformed_sms = transform_text(input_sms)
 
-        # SVC requires dense array
-        if selected_model_name == "Support Vector Classifier":
-            transformed_input = transformed_input.toarray()
+        # 2. Vectorize
+        vector_input = tfidf.transform([transformed_sms])
 
-        prediction = selected_model.predict(transformed_input)[0]
+        # 3. Predict
+        model = models[model_choice]
+        result = model.predict(vector_input)[0]
 
-        if prediction == 1:
-            st.error("❌ This message is classified as **SPAM**.")
+        # 4. Display
+        if result == 1:
+            st.header("Spam")
         else:
-            st.success("✅ This message is classified as **HAM** (Not Spam).")
-
-        st.markdown(f"🔧 Model used: **{selected_model_name}**")
-
-# Footer
-st.markdown("---")
+            st.header("Not Spam")
