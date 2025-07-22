@@ -5,16 +5,16 @@ from nltk.corpus import stopwords
 import nltk
 from nltk.stem.porter import PorterStemmer
 
+import nltk
+import streamlit as st
+
 # Ensure necessary NLTK data is downloaded
-try:
-    stopwords.words('english')
-except LookupError:
-    nltk.download('stopwords')
-    
-try:
-    nltk.word_tokenize("test")
-except LookupError:
-    nltk.download('punkt')
+nltk_dependencies = ['punkt', 'stopwords']
+for dep in nltk_dependencies:
+    try:
+        nltk.data.find(f'tokenizers/{dep}' if dep == 'punkt' else f'corpora/{dep}')
+    except LookupError:
+        nltk.download(dep)
 
 ps = PorterStemmer()
 
