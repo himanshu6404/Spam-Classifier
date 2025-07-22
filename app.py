@@ -5,6 +5,17 @@ from nltk.corpus import stopwords
 import nltk
 from nltk.stem.porter import PorterStemmer
 
+# Ensure necessary NLTK data is downloaded
+try:
+    stopwords.words('english')
+except LookupError:
+    nltk.download('stopwords')
+    
+try:
+    nltk.word_tokenize("test")
+except LookupError:
+    nltk.download('punkt')
+
 ps = PorterStemmer()
 
 def transform_text(text):
