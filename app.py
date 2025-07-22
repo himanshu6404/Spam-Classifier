@@ -1,12 +1,5 @@
 import streamlit as st
-import pickle
-import string
-from nltk.corpus import stopwords
 import nltk
-from nltk.stem.porter import PorterStemmer
-
-import nltk
-import streamlit as st
 
 # Ensure necessary NLTK data is downloaded
 nltk_dependencies = ['punkt', 'stopwords']
@@ -15,7 +8,11 @@ for dep in nltk_dependencies:
         nltk.data.find(f'tokenizers/{dep}' if dep == 'punkt' else f'corpora/{dep}')
     except LookupError:
         nltk.download(dep)
-
+import pickle
+import string
+from nltk.corpus import stopwords
+import nltk
+from nltk.stem.porter import PorterStemmer
 ps = PorterStemmer()
 
 def transform_text(text):
